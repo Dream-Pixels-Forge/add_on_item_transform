@@ -4,14 +4,8 @@ Stack operators - Stack objects along an axis based on bounding boxes.
 
 import bpy
 from bpy.props import EnumProperty, FloatProperty
-from mathutils import Vector
 
-
-def _get_bounds_on_axis(obj, axis_idx):
-    """Return (min, max) of the object's world-space bounding box on given axis."""
-    bounds = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
-    values = [v[axis_idx] for v in bounds]
-    return min(values), max(values)
+from ..utils import axis_index, get_bounds_on_axis
 
 
 class OBJECT_OT_StackObjects(bpy.types.Operator):
@@ -75,8 +69,8 @@ class OBJECT_OT_StackObjects(bpy.types.Operator):
             prev_obj = objects[i - 1]
             curr_obj = objects[i]
 
-            prev_min, prev_max = _get_bounds_on_axis(prev_obj, axis_idx)
-            curr_min, curr_max = _get_bounds_on_axis(curr_obj, axis_idx)
+            prev_min, prev_max = get_bounds_on_axis(prev_obj, axis_idx)
+            curr_min, curr_max = get_bounds_on_axis(curr_obj, axis_idx)
             curr_size = curr_max - curr_min
 
             # Calculate where the current object's min/max should be

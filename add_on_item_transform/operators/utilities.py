@@ -4,7 +4,8 @@ Utility operators - Common transform helpers and cleanup tools.
 
 import bpy
 from bpy.props import BoolProperty
-from mathutils import Vector
+
+from ..utils import get_world_bounds, axis_index
 
 
 class OBJECT_OT_MoveToGround(bpy.types.Operator):
@@ -21,9 +22,9 @@ class OBJECT_OT_MoveToGround(bpy.types.Operator):
     def execute(self, context):
         count = 0
         for obj in context.selected_objects:
-            if not hasattr(obj, 'bound_box'):
+            bounds = get_world_bounds(obj)
+            if len(bounds) <= 1 and not hasattr(obj, 'bound_box'):
                 continue
-            bounds = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
             min_z = min(v.z for v in bounds)
             obj.location.z -= min_z
             count += 1
@@ -247,7 +248,7 @@ class OBJECT_OT_MirrorPlacement(bpy.types.Operator):
         return context.selected_objects and context.mode == 'OBJECT'
 
     def execute(self, context):
-        axis_idx = {'X': 0, 'Y': 1, 'Z': 2}[self.mirror_axis]
+        axis_idx = axis_index(self.mirror_axis)
         pivot = context.scene.cursor.location[axis_idx] if self.use_cursor else 0.0
 
         for obj in context.selected_objects:

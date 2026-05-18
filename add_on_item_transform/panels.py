@@ -1,5 +1,7 @@
 """
-Panels module - UI panels for Properties Editor and 3D Viewport sidebar.
+Panels module - UI panels for 3D Viewport sidebar (N-Panel) and Properties Editor.
+Includes all feature sections: Quick Transform, Align, Stack, Randomize,
+Pivot, Snap, Array, Presets, and Utilities.
 """
 
 import bpy
@@ -29,10 +31,13 @@ class VIEW3D_PT_ItemTransform_Main(ItemTransformPanelMixin, bpy.types.Panel):
     bl_idname = "VIEW3D_PT_item_transform_main"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
+    bl_options = set()  # Always open by default
 
     def draw(self, context):
         layout = self.layout
         layout.label(text="Professional Transform Toolkit", icon='ORIENTATION_GLOBAL')
+        row = layout.row(align=True)
+        row.label(text="Pie Menu: Shift+Alt+Key", icon='EVENT_OS')
 
 
 class VIEW3D_PT_ItemTransform_QuickMove(ItemTransformPanelMixin, bpy.types.Panel):
@@ -219,6 +224,83 @@ class VIEW3D_PT_ItemTransform_Pivot(ItemTransformPanelMixin, bpy.types.Panel):
             op.pivot_type = ptype
 
 
+class VIEW3D_PT_ItemTransform_Snap(ItemTransformPanelMixin, bpy.types.Panel):
+    bl_label = "Snap to Surface"
+    bl_idname = "VIEW3D_PT_item_transform_snap"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_parent_id = "VIEW3D_PT_item_transform_main"
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+
+        # Snap to surface (raycast)
+        box = col.box()
+        box.label(text="Raycast Snap:", icon='SNAP_ON')
+        row = box.row(align=True)
+        row.operator("object.item_transform_snap_to_surface", text="Snap Down", icon='IMPORT')
+        row.operator("object.item_transform_snap_to_active", text="To Active", icon='SNAP_FACE')
+
+        box.operator("object.item_transform_drop_to_ground", text="Drop to Ground", icon='DOWNARROW_HLT')
+
+
+class VIEW3D_PT_ItemTransform_Array(ItemTransformPanelMixin, bpy.types.Panel):
+    bl_label = "Array Placement"
+    bl_idname = "VIEW3D_PT_item_transform_array"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_parent_id = "VIEW3D_PT_item_transform_main"
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.operator("object.item_transform_circular_array", icon='CURVE_BEZCIRCLE')
+        col.operator("object.item_transform_grid_array", icon='MESH_GRID')
+        col.operator("object.item_transform_linear_array", icon='EMPTY_SINGLE_ARROW')
+
+
+class VIEW3D_PT_ItemTransform_Presets(ItemTransformPanelMixin, bpy.types.Panel):
+    bl_label = "Transform Presets"
+    bl_idname = "VIEW3D_PT_item_transform_presets"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_parent_id = "VIEW3D_PT_item_transform_main"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+
+        # Preset list
+        row = layout.row()
+        row.template_list(
+            "ITEM_TRANSFORM_UL_preset_list", "",
+            scene, "item_transform_presets",
+            scene, "item_transform_preset_index",
+            rows=3,
+        )
+
+        # List controls (add/remove/move)
+        col = row.column(align=True)
+        col.operator("object.item_transform_save_preset", icon='ADD', text="")
+        col.operator("object.item_transform_delete_preset", icon='REMOVE', text="")
+        col.separator()
+        op = col.operator("object.item_transform_move_preset", icon='TRIA_UP', text="")
+        op.direction = 'UP'
+        op = col.operator("object.item_transform_move_preset", icon='TRIA_DOWN', text="")
+        op.direction = 'DOWN'
+
+        # Apply button
+        if len(scene.item_transform_presets) > 0:
+            layout.separator()
+            row = layout.row(align=True)
+            row.operator("object.item_transform_apply_preset", text="Apply Preset", icon='PLAY')
+            op = row.operator("object.item_transform_apply_preset", text="Add", icon='ADD')
+            op.additive = True
+
+
 class VIEW3D_PT_ItemTransform_Utilities(ItemTransformPanelMixin, bpy.types.Panel):
     bl_label = "Utilities"
     bl_idname = "VIEW3D_PT_item_transform_utilities"
@@ -258,7 +340,7 @@ class VIEW3D_PT_ItemTransform_Utilities(ItemTransformPanelMixin, bpy.types.Panel
 
 
 # ============================================================
-# Properties Editor Panel (legacy compatibility)
+# Properties Editor Panel
 # ============================================================
 
 class OBJECT_PT_ItemTransform_Properties(bpy.types.Panel):
@@ -300,6 +382,11 @@ class OBJECT_PT_ItemTransform_Properties(bpy.types.Panel):
         row.operator("object.item_transform_reset", text="Reset", icon='LOOP_BACK')
         row.operator("object.item_transform_apply", text="Apply", icon='CHECKMARK')
 
+        col.separator()
+        row = col.row(align=True)
+        row.operator("object.item_transform_snap_to_surface", text="Snap", icon='SNAP_ON')
+        row.operator("object.item_transform_drop_to_ground", text="Drop", icon='DOWNARROW_HLT')
+
         layout.label(text="Full controls in 3D Viewport > N-Panel", icon='INFO')
 
 
@@ -315,6 +402,9 @@ classes = (
     VIEW3D_PT_ItemTransform_Stack,
     VIEW3D_PT_ItemTransform_Randomize,
     VIEW3D_PT_ItemTransform_Pivot,
+    VIEW3D_PT_ItemTransform_Snap,
+    VIEW3D_PT_ItemTransform_Array,
+    VIEW3D_PT_ItemTransform_Presets,
     VIEW3D_PT_ItemTransform_Utilities,
     # Properties panel
     OBJECT_PT_ItemTransform_Properties,

@@ -1,9 +1,16 @@
 """
 Preferences module - Addon preferences accessible from Edit > Preferences > Add-ons.
+Supports live keymap updates without requiring a Blender restart.
 """
 
 import bpy
-from bpy.props import EnumProperty, StringProperty
+from bpy.props import EnumProperty
+
+
+def _update_pie_menu_key(self, context):
+    """Callback: re-register the pie menu keymap when preference changes."""
+    from . import pie_menu
+    pie_menu.refresh_keymap()
 
 
 class ITEM_TRANSFORM_Preferences(bpy.types.AddonPreferences):
@@ -11,14 +18,17 @@ class ITEM_TRANSFORM_Preferences(bpy.types.AddonPreferences):
 
     pie_menu_key: EnumProperty(
         name="Pie Menu Key",
-        description="Key to open the Item Transform pie menu",
+        description="Key to open the Item Transform pie menu (Shift+Alt+Key)",
         items=[
-            ('T', "T", ""),
-            ('Q', "Q", ""),
-            ('D', "D", ""),
-            ('W', "W", ""),
+            ('T', "T", "Shift+Alt+T"),
+            ('Q', "Q", "Shift+Alt+Q"),
+            ('D', "D", "Shift+Alt+D"),
+            ('W', "W", "Shift+Alt+W"),
+            ('E', "E", "Shift+Alt+E"),
+            ('X', "X", "Shift+Alt+X"),
         ],
         default='T',
+        update=_update_pie_menu_key,
     )
 
     default_panel_location: EnumProperty(
@@ -38,9 +48,14 @@ class ITEM_TRANSFORM_Preferences(bpy.types.AddonPreferences):
 
         box = layout.box()
         box.label(text="Keyboard Shortcuts:", icon='EVENT_OS')
-        row = box.row()
+        col = box.column(align=True)
+        row = col.row()
         row.prop(self, "pie_menu_key")
         row.label(text="(Shift + Alt + Key)")
+        col.label(
+            text="Keymap updates live — no restart needed.",
+            icon='CHECKMARK',
+        )
 
         box = layout.box()
         box.label(text="Panel Location:", icon='WINDOW')

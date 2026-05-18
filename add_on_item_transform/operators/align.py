@@ -4,28 +4,8 @@ Align operators - Align objects along axes using various reference points.
 
 import bpy
 from bpy.props import EnumProperty
-from mathutils import Vector
 
-
-def _get_object_bounds_world(obj):
-    """Get world-space bounding box corners for any object."""
-    if hasattr(obj, 'bound_box'):
-        return [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
-    # Fallback for non-mesh objects
-    return [obj.matrix_world @ Vector((0, 0, 0))]
-
-
-def _get_bound_value(obj, axis_idx, mode):
-    """Get the alignment value for an object based on mode."""
-    bounds = _get_object_bounds_world(obj)
-    values = [v[axis_idx] for v in bounds]
-
-    if mode == 'MIN':
-        return min(values)
-    elif mode == 'MAX':
-        return max(values)
-    else:  # CENTER
-        return (min(values) + max(values)) / 2.0
+from ..utils import axis_index, get_bound_value
 
 
 class OBJECT_OT_AlignObjects(bpy.types.Operator):
@@ -66,7 +46,7 @@ class OBJECT_OT_AlignObjects(bpy.types.Operator):
 
     def execute(self, context):
         objects = context.selected_objects
-        axis_idx = {'X': 0, 'Y': 1, 'Z': 2}[self.axis]
+        axis_idx = axis_index(self.axis)
 
         # Determine target value
         if self.mode == 'CURSOR':
@@ -76,12 +56,10 @@ class OBJECT_OT_AlignObjects(bpy.types.Operator):
             if not active:
                 self.report({'ERROR'}, "No active object for alignment reference")
                 return {'CANCELLED'}
-            target = _get_bound_value(active, axis_idx, 'CENTER')
+            target = get_bound_value(active, axis_idx, 'CENTER')
         else:
             # Use the collective min/max/center of all selected
-            all_values = []
-            for obj in objects:
-                all_values.append(_get_bound_value(obj, axis_idx, self.mode))
+            all_values = [get_bound_value(obj, axis_idx, self.mode) for obj in objects]
 
             if self.mode == 'MIN':
                 target = min(all_values)
@@ -92,7 +70,8 @@ class OBJECT_OT_AlignObjects(bpy.types.Operator):
 
         # Apply alignment
         for obj in objects:
-            current = _get_bound_value(obj, axis_idx, self.mode if self.mode in ('MIN', 'MAX', 'CENTER') else 'CENTER')
+            ref_mode = self.mode if self.mode in ('MIN', 'MAX', 'CENTER') else 'CENTER'
+            current = get_bound_value(obj, axis_idx, ref_mode)
             offset = target - current
             obj.location[axis_idx] += offset
 

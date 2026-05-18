@@ -1,8 +1,26 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.egg-info/
+
+# Build artifacts
 dist/
 build/
+*.zip
+
+# Blender backup files
 *.blend1
 *.blend2
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

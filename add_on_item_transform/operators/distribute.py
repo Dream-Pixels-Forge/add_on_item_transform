@@ -4,14 +4,8 @@ Distribute operators - Evenly distribute objects along an axis.
 
 import bpy
 from bpy.props import EnumProperty
-from mathutils import Vector
 
-
-def _get_bounds_on_axis(obj, axis_idx):
-    """Return (min, max) of the object's bounding box on the given axis."""
-    bounds = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
-    values = [v[axis_idx] for v in bounds]
-    return min(values), max(values)
+from ..utils import axis_index, get_bounds_on_axis
 
 
 class OBJECT_OT_DistributeObjects(bpy.types.Operator):
@@ -46,7 +40,7 @@ class OBJECT_OT_DistributeObjects(bpy.types.Operator):
 
     def execute(self, context):
         objects = list(context.selected_objects)
-        axis_idx = {'X': 0, 'Y': 1, 'Z': 2}[self.axis]
+        axis_idx = axis_index(self.axis)
 
         if len(objects) < 3:
             self.report({'WARNING'}, "Need at least 3 objects to distribute")
@@ -71,12 +65,12 @@ class OBJECT_OT_DistributeObjects(bpy.types.Operator):
 
         else:  # EVEN spacing
             # Calculate total available space and total object sizes
-            first_min, first_max = _get_bounds_on_axis(objects[0], axis_idx)
-            last_min, last_max = _get_bounds_on_axis(objects[-1], axis_idx)
+            first_min, first_max = get_bounds_on_axis(objects[0], axis_idx)
+            last_min, last_max = get_bounds_on_axis(objects[-1], axis_idx)
 
             total_span = last_max - first_min
             total_obj_size = sum(
-                _get_bounds_on_axis(o, axis_idx)[1] - _get_bounds_on_axis(o, axis_idx)[0]
+                get_bounds_on_axis(o, axis_idx)[1] - get_bounds_on_axis(o, axis_idx)[0]
                 for o in objects
             )
 
@@ -86,7 +80,7 @@ class OBJECT_OT_DistributeObjects(bpy.types.Operator):
             # Position each object after the first
             current_pos = first_max + gap
             for obj in objects[1:-1]:
-                obj_min, obj_max = _get_bounds_on_axis(obj, axis_idx)
+                obj_min, obj_max = get_bounds_on_axis(obj, axis_idx)
                 obj_size = obj_max - obj_min
                 obj_center = obj.location[axis_idx]
                 obj_offset = obj_center - obj_min

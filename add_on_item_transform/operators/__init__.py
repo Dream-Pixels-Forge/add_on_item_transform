@@ -9,6 +9,9 @@ from . import stack
 from . import randomize
 from . import utilities
 from . import pivot
+from . import snap_to_surface
+from . import array_placement
+from . import transform_presets
 
 
 modules = (
@@ -19,6 +22,9 @@ modules = (
     randomize,
     utilities,
     pivot,
+    snap_to_surface,
+    array_placement,
+    transform_presets,
 )
 
 
