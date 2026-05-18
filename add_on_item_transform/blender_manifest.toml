@@ -1,0 +1,15 @@
+# Blender Extension Manifest
+# https://developer.blender.org/docs/features/extensions/schema/1.0.0/
+
+schema_version = "1.0.0"
+id = "item_transform"
+name = "Item Transform Pro"
+version = "2.0.0"
+tagline = "Professional transform toolkit: align, distribute, stack, randomize & quick-transform objects"
+type = "add-on"
+maintainer = "Dimona Patrick <dream.pixels.forge@gmail.com>"
+website = "https://github.com/Dream-Pixels-Forge/add_on_item_transform"
+tags = ["Modeling", "Object"]
+blender_version_min = "4.2.0"
+license = ["SPDX:GPL-3.0-or-later"]
+copyright = ["2025, Dimona Patrick"]
