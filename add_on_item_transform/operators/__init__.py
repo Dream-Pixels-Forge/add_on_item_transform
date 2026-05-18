@@ -1,0 +1,38 @@
+"""
+Operators package - All operators for Item Transform Pro.
+"""
+
+from . import quick_transform
+from . import align
+from . import distribute
+from . import stack
+from . import randomize
+from . import utilities
+from . import pivot
+from . import snap_to_surface
+from . import array_placement
+from . import transform_presets
+
+
+modules = (
+    quick_transform,
+    align,
+    distribute,
+    stack,
+    randomize,
+    utilities,
+    pivot,
+    snap_to_surface,
+    array_placement,
+    transform_presets,
+)
+
+
+def register():
+    for mod in modules:
+        mod.register()
+
+
+def unregister():
+    for mod in reversed(modules):
+        mod.unregister()
